@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JusticeFlow AI - Court Case Management System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN for Analytics Graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            customBg: '#02040a',
+            customPrimary: {
+              DEFAULT: '#6366f1',
+              light: '#818cf8',
+              glow: 'rgba(99, 102, 241, 0.15)',
+            },
+            customAccent: {
+              DEFAULT: '#d97706',
+              light: '#fbbf24',
+              glow: 'rgba(217, 119, 6, 0.15)',
+            },
+            cardBg: 'rgba(13, 18, 30, 0.45)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #02040a;
+      background-image: radial-gradient(circle at 50% 0%, #0d122b 0%, #02040a 100%);
+      min-height: 100vh;
+      color: #f8fafc;
+    }
+
+    .glass {
+      background: rgba(13, 18, 30, 0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-hover:hover {
+      background: rgba(20, 27, 45, 0.7);
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+      transform: translateY(-4px);
+    }
+
+    .text-gradient-primary {
+      background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #4338ca 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .text-gradient-accent {
+      background: linear-gradient(135deg, #fde047 0%, #eab308 50%, #ca8a04 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    /* Custom Spinner */
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(99, 102, 241, 0.2);
+      border-top-color: #818cf8;
+      border-radius: 50%;
+      animation: rotate 1s linear infinite;
+    }
+
+    @keyframes rotate {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Wave animation for typing */
+    .dot-wave .dot {
+      animation: wave 1.2s infinite ease-in-out;
+    }
+    .dot-wave .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot-wave .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes wave {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Prevent browser autofill from coloring inputs white */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px #0d121f inset !important;
+        -webkit-text-fill-color: #f8fafc !important;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden">
+
+  <!-- Navbar -->
+  <nav class="sticky top-4 z-50 max-w-6xl mx-auto my-4 w-[calc(100%-32px)] rounded-2xl glass px-6 py-3 flex items-center justify-between gap-4">
+    <a href="#" class="flex items-center gap-2.5">
+      <div class="bg-customPrimary-glow border border-indigo-500/20 p-2 rounded-xl text-customPrimary-light">
+        <i data-lucide="scale" class="w-[22px] h-[22px]"></i>
+      </div>
+      <span class="font-display text-xl font-extrabold tracking-tight">JusticeFlow<span class="text-customPrimary-light font-medium">AI</span></span>
+    </a>
+
+    <div class="hidden md:flex items-center gap-8 font-medium text-slate-400 text-sm">
+      <a href="#features" class="hover:text-slate-100 transition-colors">Features</a>
+      <a href="#dashboards" class="hover:text-slate-100 transition-colors">Role Portals</a>
+      <a href="#sandbox" class="hover:text-slate-100 transition-colors">AI Sandbox</a>
+      <a href="#disclaimer" class="hover:text-slate-100 transition-colors">Safety Disclaimer</a>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="relative">
+        <button onclick="toggleDropdown()" class="flex items-center gap-2 px-4 py-2 border border-white/8 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition duration-200">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span>Portal Access</span>
+          <i data-lucide="chevron-down" id="dropdown-arrow" class="w-3.5 h-3.5 transition-transform duration-200"></i>
+        </button>
+
+        <div id="role-dropdown" class="hidden absolute top-[calc(100%+8px)] right-0 w-80 glass rounded-2xl p-3 shadow-2xl border border-white/8 z-50">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold px-3 pb-2 border-b border-white/5 mb-2">Access Court Portals</div>
+          <div class="flex flex-col gap-1">
+            <button onclick="selectDemoRole('admin')" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-indigo-500/10 transition group text-left w-full">
+              <div class="p-2 bg-white/3 rounded-lg border border-white/5 group-hover:text-customPrimary-light group-hover:bg-customPrimary-glow group-hover:border-indigo-500/20 text-slate-400">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Admin Portal</div>
+                <div class="text-[11px] text-slate-500">Manage courtrooms, judges, system</div>
+              </div>
+            </button>
+            <button onclick="selectDemoRole('judge')" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-indigo-500/10 transition group text-left w-full">
+              <div class="p-2 bg-white/3 rounded-lg border border-white/5 group-hover:text-customPrimary-light group-hover:bg-customPrimary-glow group-hover:border-indigo-500/20 text-slate-400">
+                <i data-lucide="gavel" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Judge Portal</div>
+                <div class="text-[11px] text-slate-500">View cases, read summaries, judgments</div>
+              </div>
+            </button>
+            <button onclick="selectDemoRole('lawyer')" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-indigo-500/10 transition group text-left w-full">
+              <div class="p-2 bg-white/3 rounded-lg border border-white/5 group-hover:text-customPrimary-light group-hover:bg-customPrimary-glow group-hover:border-indigo-500/20 text-slate-400">
+                <i data-lucide="briefcase" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Lawyer Portal</div>
+                <div class="text-[11px] text-slate-500">File petitions, research codes, clients</div>
+              </div>
+            </button>
+            <button onclick="selectDemoRole('client')" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-indigo-500/10 transition group text-left w-full">
+              <div class="p-2 bg-white/3 rounded-lg border border-white/5 group-hover:text-customPrimary-light group-hover:bg-customPrimary-glow group-hover:border-indigo-500/20 text-slate-400">
+                <i data-lucide="users" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-slate-200">Client Portal</div>
+                <div class="text-[11px] text-slate-500">Track hearing dates, cases status</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="py-20 md:py-28 px-6">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <!-- Left Hero Content -->
+      <div class="text-left">
+        <div class="inline-flex items-center gap-2 bg-customPrimary-glow border border-indigo-500/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-customPrimary-light mb-6 animate-float">
+          <i data-lucide="cpu" class="w-3.5 h-3.5 text-customPrimary-light"></i>
+          <span>Next-Gen Judicial Intelligence</span>
+        </div>
+        <h1 class="font-display text-4xl md:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+          The AI-Powered Court <br>
+          <span class="text-gradient-primary">Case Manager</span>
+        </h1>
+        <p class="text-slate-400 text-lg mb-8 max-w-xl">
+          Digitize courtroom workflows, analyze complex files, generate summaries, and perform advanced legal research using secure, state-of-the-art AI models.
+        </p>
+        <div class="flex flex-wrap gap-4 mb-8">
+          <a href="#dashboards" class="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all duration-200 transform hover:-translate-y-0.5">
+            <span>Explore Portals</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </a>
+          <a href="#features" class="inline-flex items-center gap-2 px-6 py-3.5 bg-white/5 border border-white/8 hover:bg-white/10 text-slate-200 rounded-xl font-bold transition-all duration-200 transform hover:-translate-y-0.5">
+            <span>Capabilities</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Hero AI Playground Simulator -->
+      <div class="flex justify-center">
+        <div class="w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/8 glass">
+          <!-- Window Header -->
+          <div class="bg-slate-900/80 px-4 py-3 flex items-center gap-2 border-b border-white/5">
+            <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+            <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold ml-2">Legal AI Summarizer</span>
+          </div>
+          <!-- Panel Content -->
+          <div class="p-6 bg-slate-950/70 flex flex-col gap-5">
+            <div class="bg-white/2 border border-white/5 rounded-xl p-4">
+              <div class="flex items-center gap-2.5 text-sm font-semibold border-b border-white/5 pb-2 mb-3">
+                <i data-lucide="file-text" class="w-[18px] h-[18px] text-customPrimary-light"></i>
+                <span class="text-slate-200">Petition_Draft_Zoning.pdf</span>
+                <span class="ml-auto text-xs text-slate-500">148 KB</span>
+              </div>
+              <p class="text-left text-xs text-slate-400 leading-relaxed font-mono">
+                PETITION UNDER ARTICLE 226 OF THE CONSTITUTION... The petitioner submits that the municipal zoning commission unlawfully issued a cease-and-desist construction order on Plot 104-B, Sector 4.
+              </p>
+            </div>
+
+            <!-- Demo Interactive State Holder -->
+            <div id="summarizer-demo" class="flex flex-col items-center justify-center min-h-[120px] py-4 gap-3">
+              <input type="file" id="file-uploader" accept=".pdf" class="hidden" onchange="uploadRealPDF(event)">
+              <button onclick="document.getElementById('file-uploader').click()" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all duration-200">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span>Upload & Read PDF File</span>
+              </button>
+              <div id="upload-status" class="text-[10px] text-slate-500">Selected PDF will be parsed and saved in MongoDB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Grid -->
+  <section id="features" class="py-20 border-t border-white/5 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-xl mx-auto mb-16">
+        <h2 class="font-display text-3xl font-extrabold mb-4">Advanced AI Capabilities</h2>
+        <p class="text-slate-400">Supercharging court clerks, legal counsels, and judges with tailored workflow automation.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="p-8 glass rounded-2xl text-left glass-hover transition duration-300">
+          <div class="w-12 h-12 bg-customPrimary-glow border border-indigo-500/20 text-customPrimary-light rounded-xl flex items-center justify-center mb-6">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+          </div>
+          <h4 class="font-display text-lg font-bold mb-3 text-slate-200">Doc Summarizer</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">Upload multi-page PDFs (judgments, petitions, FIRs) and extract core issues, facts, and final orders instantly.</p>
+        </div>
+
+        <div class="p-8 glass rounded-2xl text-left glass-hover transition duration-300">
+          <div class="w-12 h-12 bg-customPrimary-glow border border-indigo-500/20 text-customPrimary-light rounded-xl flex items-center justify-center mb-6">
+            <i data-lucide="message-square" class="w-6 h-6"></i>
+          </div>
+          <h4 class="font-display text-lg font-bold mb-3 text-slate-200">Legal Research Chat</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">Ask natural questions about uploaded litigation files, review key contract clauses, and locate liability provisions.</p>
+        </div>
+
+        <div class="p-8 glass rounded-2xl text-left glass-hover transition duration-300">
+          <div class="w-12 h-12 bg-customPrimary-glow border border-indigo-500/20 text-customPrimary-light rounded-xl flex items-center justify-center mb-6">
+            <i data-lucide="calendar" class="w-6 h-6"></i>
+          </div>
+          <h4 class="font-display text-lg font-bold mb-3 text-slate-200">Hearing Auto-Logger</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">Upload handwritten or dictation drafts of case proceedings, and let AI generate schedules and next-step actions.</p>
+        </div>
+
+        <div class="p-8 glass rounded-2xl text-left glass-hover transition duration-300">
+          <div class="w-12 h-12 bg-customPrimary-glow border border-indigo-500/20 text-customPrimary-light rounded-xl flex items-center justify-center mb-6">
+            <i data-lucide="search" class="w-6 h-6"></i>
+          </div>
+          <h4 class="font-display text-lg font-bold mb-3 text-slate-200">Statute Search</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">Identify relevant penal codes, civil procedures, and similar cases automatically from context drafts.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Role Dashboards Preview Section -->
+  <section id="dashboards" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-xl mx-auto mb-16">
+        <h2 class="font-display text-3xl font-extrabold mb-4">Secure Role-Based Portals</h2>
+        <p class="text-slate-400">Every stakeholder has a tailored view. Switch tabs below to preview each dashboard interface.</p>
+      </div>
+
+      <div class="glass rounded-3xl p-2.5 overflow-hidden">
+        <!-- Tab Triggers -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5 p-2 bg-black/20 rounded-2xl">
+          <button onclick="switchTab('admin')" id="tab-btn-admin" class="tab-btn flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition duration-200 text-slate-400 hover:text-slate-200">
+            <i data-lucide="shield" class="w-4 h-4"></i>
+            <span>Admin</span>
+          </button>
+          <button onclick="switchTab('judge')" id="tab-btn-judge" class="tab-btn flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition duration-200 text-slate-400 hover:text-slate-200">
+            <i data-lucide="gavel" class="w-4 h-4"></i>
+            <span>Judge</span>
+          </button>
+          <button onclick="switchTab('lawyer')" id="tab-btn-lawyer" class="tab-btn flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition duration-200 text-slate-400 hover:text-slate-200 active-tab">
+            <i data-lucide="briefcase" class="w-4 h-4"></i>
+            <span>Lawyer</span>
+          </button>
+          <button onclick="switchTab('client')" id="tab-btn-client" class="tab-btn flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition duration-200 text-slate-400 hover:text-slate-200">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>Client</span>
+          </button>
+        </div>
+
+        <!-- Dashboard Content Box -->
+        <div class="p-8 text-left">
+          <div class="flex items-center justify-between flex-wrap gap-4 border-b border-white/5 pb-5 mb-8">
+            <div>
+              <h3 id="panel-title" class="font-display text-2xl font-bold inline-block mr-3 text-slate-200">Counsel Legal Suite</h3>
+              <span id="panel-badge" class="inline-block bg-customAccent-glow border border-amber-600/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-customAccent-light tracking-wider uppercase">Attorney Portal</span>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div id="stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <!-- Stat Cards loaded dynamically -->
+          </div>
+
+          <!-- Interactive Analytics Chart Canvas -->
+          <div class="my-8 p-6 bg-white/2 border border-white/5 rounded-2xl">
+            <h4 class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-4">Case Activity Analytics Chart:</h4>
+            <div class="h-64 relative w-full">
+              <canvas id="dashboardChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Workspace Actions -->
+          <div class="border-t border-white/5 pt-6">
+            <h5 class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-4">Quick Workspace Actions:</h5>
+            <div id="actions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <!-- Actions loaded dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Sandbox Q&A Chat -->
+  <section id="sandbox" class="py-20 border-t border-white/5 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch glass rounded-[2rem] p-8 lg:p-12">
+        
+        <!-- Info Column -->
+        <div class="text-left flex flex-col justify-center">
+          <div class="inline-flex items-center gap-2 bg-customAccent-glow border border-amber-500/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-customAccent-light mb-6 self-start animate-float">
+            <i data-lucide="book-open" class="w-3.5 h-3.5 text-customAccent-light"></i>
+            <span>Interactive Sandbox</span>
+          </div>
+          <h3 class="font-display text-3xl font-extrabold mb-4 text-slate-200">Test Case AI Chatbot</h3>
+          <p class="text-slate-400 mb-8 leading-relaxed">
+            Experience the legal research assistant in real-time. Click any recommended inquiry card below to submit it to the mock document engine.
+          </p>
+          <div class="border-t border-white/5 pt-6 flex flex-col gap-2">
+            <h5 class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-2">Click recommended queries:</h5>
+            <button onclick="chatSubmit('Show all pending hearings')" class="w-full text-left bg-white/2 border border-white/4 p-3 rounded-xl text-slate-300 text-xs hover:bg-indigo-500/5 hover:border-indigo-500/20 hover:text-customPrimary-light transition duration-200">
+              "Show all pending hearings"
+            </button>
+            <button onclick="chatSubmit('Summarize Case 105')" class="w-full text-left bg-white/2 border border-white/4 p-3 rounded-xl text-slate-300 text-xs hover:bg-indigo-500/5 hover:border-indigo-500/20 hover:text-customPrimary-light transition duration-200">
+              "Summarize Case 105"
+            </button>
+            <button onclick="chatSubmit('Explain judgment in simple English')" class="w-full text-left bg-white/2 border border-white/4 p-3 rounded-xl text-slate-300 text-xs hover:bg-indigo-500/5 hover:border-indigo-500/20 hover:text-customPrimary-light transition duration-200">
+              "Explain judgment in simple English"
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Frame Column -->
+        <div class="bg-slate-950/85 border border-white/4 rounded-2xl flex flex-col overflow-hidden h-[420px]">
+          <!-- Chat Header -->
+          <div class="bg-slate-900/90 px-5 py-3.5 flex items-center gap-2 border-b border-white/5 text-sm font-semibold">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500"></div>
+            <span class="text-slate-200">JusticeFlow Assistant</span>
+          </div>
+
+          <!-- Message Log -->
+          <div id="chat-messages" class="flex-1 p-5 overflow-y-auto flex flex-col gap-3.5 text-left text-xs leading-relaxed">
+            <div class="max-w-[85%] bg-white/3 border border-white/4 text-slate-200 rounded-2xl rounded-tl-sm px-4 py-3">
+              Hello! I am your Court Case AI Assistant. Ask me questions about cases, missing documents, or judgments.
+            </div>
+          </div>
+
+          <!-- Message Input Bar -->
+          <form onsubmit="handleChatForm(event)" class="bg-slate-900/90 border-t border-white/5 p-2.5 flex gap-2">
+            <input id="chat-input" type="text" placeholder="Ask AI e.g. 'Show pending hearings'..." class="flex-1 bg-white/2 border border-white/5 rounded-xl px-4 py-2 text-xs text-white outline-none transition focus:border-indigo-500/40 focus:bg-white/4">
+            <button type="submit" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl text-xs transition duration-200">Send</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Legal Disclaimers Section -->
+  <section id="disclaimer" class="py-10 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-start gap-4 p-6 glass rounded-2xl border border-amber-500/10 bg-amber-500/1">
+        <i data-lucide="alert-circle" class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5"></i>
+        <div class="text-left">
+          <h5 class="text-sm font-bold text-amber-500 mb-1.5">Educational Judicial Research Assistant Disclaimer</h5>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            JusticeFlow AI is an educational project designed for mock court litigation tracking, text summaries, and document querying. AI models are trained on general statutes and user-uploaded templates. AI suggestions, law precedents, and draft interpretations represent research assistance support and DO NOT constitute authoritative legal advice, binding judicial findings, or predictive court judgments.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2">
+        <i data-lucide="scale" class="w-5 h-5 text-customPrimary-light"></i>
+        <span class="font-display font-bold text-sm text-slate-200">JusticeFlow AI</span>
+      </div>
+      <span class="text-xs text-slate-500">© 2026 JusticeFlow Project. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Chart.js global reference
+    let myChartInstance = null;
+
+    // 1. Role portal switcher config
+    const dashboardPreviews = {
+      admin: {
+        title: "System Administrator Dashboard",
+        badge: "Full Access",
+        stats: [
+          { label: "Total Active Cases", value: "1,842", change: "+12% this month" },
+          { label: "Registered Judges", value: "48", change: "4 pending assignment" },
+          { label: "Lawyers Verified", value: "312", change: "15 new requests" },
+          { label: "System Load", value: "98.4%", change: "All services online" }
+        ],
+        actions: ["Manage User Access", "Audit Security Logs", "Register New Courtroom", "Generate System Reports"],
+        chartData: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'System Access Audits',
+            data: [340, 510, 480, 620, 890, 1200],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        }
+      },
+      judge: {
+        title: "Judge Judicial Chambers",
+        badge: "Justice ABC",
+        stats: [
+          { label: "Assigned Cases", value: "34", change: "6 high priority" },
+          { label: "Today's Hearings", value: "4", change: "Starts at 10:30 AM" },
+          { label: "Pending Judgments", value: "3", change: "Due in 7 days" },
+          { label: "AI Summary Read Rate", value: "100%", change: "Saves ~12h/week" }
+        ],
+        actions: ["Review Case Dossiers", "Draft Legal Judgment", "Set Next Hearing Date", "Update Hearing Docket"],
+        chartData: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Judgments Written',
+            data: [12, 19, 15, 25, 22, 30],
+            borderColor: '#d97706',
+            backgroundColor: 'rgba(217, 119, 6, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        }
+      },
+      lawyer: {
+        title: "Counsel Legal Suite",
+        badge: "Attorney Portal",
+        stats: [
+          { label: "Active Clients", value: "18", change: "2 new contracts" },
+          { label: "Active Cases", value: "12", change: "High Court & Districts" },
+          { label: "Upcoming Hearings", value: "3", change: "Next: July 15th" },
+          { label: "AI Tokens Used", value: "85k", change: "Plan renews in 12 days" }
+        ],
+        actions: ["File New Petition", "Consult Legal AI Assistant", "Schedule Client Briefing", "Submit Evidence Dossier"],
+        chartData: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Briefs Filed',
+            data: [8, 12, 7, 15, 18, 14],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        }
+      },
+      client: {
+        title: "Client Case Tracking Portal",
+        badge: "Secure Access",
+        stats: [
+          { label: "My Case Status", value: "In Progress", change: "Next Hearing Scheduled" },
+          { label: "Next Hearing Date", value: "Aug 15, 2026", change: "Judge ABC presiding" },
+          { label: "Case Documents", value: "14 Files", change: "Last uploaded 2 days ago" },
+          { label: "Notifications", value: "2 New", change: "Case note added" }
+        ],
+        actions: ["Contact Representative", "Download Court Orders", "Upload Authorized Files", "Review Billing Logs"],
+        chartData: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Timeline Completeness (%)',
+            data: [20, 35, 45, 60, 80, 95],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        }
+      }
+    };
+
+    function updateChart(chartData) {
+      const ctx = document.getElementById('dashboardChart').getContext('2d');
+      if (myChartInstance) {
+        myChartInstance.destroy();
+      }
+
+      myChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#94a3b8',
+                font: { family: 'Inter' }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } }
+          }
+        }
+      });
+    }
+
+    function switchTab(roleKey) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active-tab', 'text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/20'));
+      const activeBtn = document.getElementById(`tab-btn-${roleKey}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active-tab', 'text-indigo-400', 'bg-indigo-500/10', 'border-indigo-500/20');
+      }
+
+      const data = dashboardPreviews[roleKey];
+      document.getElementById('panel-title').innerText = data.title;
+      document.getElementById('panel-badge').innerText = data.badge;
+
+      const statsGrid = document.getElementById('stats-grid');
+      statsGrid.innerHTML = '';
+      data.stats.forEach(stat => {
+        statsGrid.innerHTML += `
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-white/20 transition duration-200">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">${stat.label}</div>
+            <div class="font-display text-3xl font-extrabold text-slate-100 my-2">${stat.value}</div>
+            <div class="text-[11px] text-emerald-400">${stat.change}</div>
+          </div>
+        `;
+      });
+
+      // Update Chartjs rendering
+      updateChart(data.chartData);
+
+      const actionsGrid = document.getElementById('actions-grid');
+      actionsGrid.innerHTML = '';
+      data.actions.forEach(action => {
+        actionsGrid.innerHTML += `
+          <div class="flex items-center gap-2.5 bg-white/5 border border-white/10 p-3.5 rounded-xl text-slate-300 text-xs">
+            <i data-lucide="check-circle" class="w-4 h-4 text-indigo-400"></i>
+            <span>${action}</span>
+          </div>
+        `;
+      });
+
+      lucide.createIcons();
+    }
+
+    // Default tab initialization
+    switchTab('lawyer');
+
+    // Dropdown Controller
+    function toggleDropdown() {
+      const drop = document.getElementById('role-dropdown');
+      const arrow = document.getElementById('dropdown-arrow');
+      if (drop.classList.contains('hidden')) {
+        drop.classList.remove('hidden');
+        arrow.style.transform = 'rotate(180deg)';
+      } else {
+        drop.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.closest('.relative')) {
+        document.getElementById('role-dropdown').classList.add('hidden');
+        document.getElementById('dropdown-arrow').style.transform = 'rotate(0deg)';
+      }
+    });
+
+    function selectDemoRole(roleKey) {
+      document.getElementById('role-dropdown').classList.add('hidden');
+      openLoginModal(roleKey);
+    }
+
+    // Summarizer Simulator Demo
+    async function uploadRealPDF(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const holder = document.getElementById('summarizer-demo');
+
+      holder.innerHTML = `
+        <div class="flex flex-col items-center gap-3 text-sm text-customPrimary-light">
+          <div class="spinner"></div>
+          <span>Uploading and parsing PDF...</span>
+        </div>
+      `;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('caseId', 'CIV-2026-1023');
+      formData.append('documentName', file.name);
+      formData.append('documentType', 'Petition');
+
+      try {
+        const res = await fetch('/api/documents/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          // Output the custom pop-up message (alert) as requested!
+          alert(`🎉 PDF SUCCESS!\n\nFile Name: ${data.documentName}\n\nSummary Info:\n${data.summary}\n\nLocal Database Document Saved Successfully!`);
+          
+          holder.innerHTML = `
+            <div class="w-full text-left p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl animate-fade-in">
+              <div class="flex items-center gap-2 text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span>Database Entry Created</span>
+              </div>
+              <div class="mb-4 text-xs">
+                <div class="font-semibold text-slate-400">Saved Document:</div>
+                <div class="text-slate-200 mt-1">${data.documentName}</div>
+              </div>
+              <div class="mb-4">
+                <h6 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">AI Extracted Summary:</h6>
+                <p class="text-xs text-slate-300 leading-relaxed">${data.summary}</p>
+              </div>
+              <button onclick="resetUploadPanel()" class="w-full py-2 bg-white/5 border border-white/10 hover:bg-white/8 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition duration-200 mt-2">Upload Another</button>
+            </div>
+          `;
+        } else {
+          alert(`❌ Error: ${data.error || 'Failed to read PDF'}`);
+          resetUploadPanel();
+        }
+      } catch (error) {
+        alert('❌ Error: Could not connect to backend database.');
+        resetUploadPanel();
+      }
+      lucide.createIcons();
+    }
+
+    function resetUploadPanel() {
+      const holder = document.getElementById('summarizer-demo');
+      holder.innerHTML = `
+        <input type="file" id="file-uploader" accept=".pdf" class="hidden" onchange="uploadRealPDF(event)">
+        <button onclick="document.getElementById('file-uploader').click()" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all duration-200">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <span>Upload & Read PDF File</span>
+        </button>
+        <div id="upload-status" class="text-[10px] text-slate-500">Selected PDF will be parsed and saved in Local Database</div>
+      `;
+      lucide.createIcons();
+    }
+
+    // Chat Playground Simulator
+    function handleChatForm(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      chatSubmit(text);
+      input.value = '';
+    }
+
+    async function chatSubmit(queryText) {
+      const chatBox = document.getElementById('chat-messages');
+
+      chatBox.innerHTML += `
+        <div class="max-w-[85%] bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 self-end shadow-md shadow-indigo-600/20">
+          ${queryText}
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const typingId = 'typing-' + Date.now();
+      chatBox.innerHTML += `
+        <div id="${typingId}" class="max-w-[85%] bg-white/3 border border-white/4 text-slate-200 rounded-2xl rounded-tl-sm px-5 py-3 flex gap-1 items-center self-start dot-wave">
+          <span class="w-1.5 h-1.5 bg-slate-400 rounded-full dot"></span>
+          <span class="w-1.5 h-1.5 bg-slate-400 rounded-full dot"></span>
+          <span class="w-1.5 h-1.5 bg-slate-400 rounded-full dot"></span>
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: queryText })
+        });
+        const data = await res.json();
+        
+        document.getElementById(typingId).remove();
+        chatBox.innerHTML += `
+          <div class="max-w-[85%] bg-white/3 border border-white/4 text-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 self-start">
+            ${data.response}
+          </div>
+        `;
+      } catch (error) {
+        document.getElementById(typingId).remove();
+        chatBox.innerHTML += `
+          <div class="max-w-[85%] bg-white/3 border border-red-500/20 text-red-400 rounded-2xl rounded-tl-sm px-4 py-3 self-start">
+            Error: Could not connect to backend server.
+          </div>
+        `;
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Portal Login Modal Controller functions
+    function openLoginModal(roleKey) {
+      document.getElementById('login-role').value = roleKey;
+      
+      const title = document.getElementById('modal-role-title');
+      const icon = document.getElementById('modal-icon');
+      const inputName = document.getElementById('login-name');
+      const inputPhone = document.getElementById('login-phone');
+      inputName.value = '';
+      inputPhone.value = '';
+      
+      const capitalized = roleKey.charAt(0).toUpperCase() + roleKey.slice(1);
+      title.innerText = `${capitalized} Portal Login`;
+      
+      let iconName = 'shield';
+      if (roleKey === 'judge') iconName = 'gavel';
+      if (roleKey === 'lawyer') iconName = 'briefcase';
+      if (roleKey === 'client') iconName = 'users';
+      
+      icon.setAttribute('data-lucide', iconName);
+      document.getElementById('login-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.add('hidden');
+    }
+
+    async function handlePortalLoginForm(e) {
+      e.preventDefault();
+      const role = document.getElementById('login-role').value;
+      const name = document.getElementById('login-name').value.trim();
+      const phoneNumber = document.getElementById('login-phone').value.trim();
+      
+      try {
+        const res = await fetch('/api/auth/portal-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phoneNumber, role })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          closeLoginModal();
+          alert(`🎉 ACCESS GRANTED!\n\nUser: ${name}\nRole: ${role.toUpperCase()}\n\nSaved successfully to Local JSON Database!`);
+          switchTab(role);
+        } else {
+          alert(`❌ Error: ${data.error || 'Failed to authenticate'}`);
+        }
+      } catch (error) {
+        alert('❌ Error: Could not connect to backend server.');
+      }
+    }
+  </script>
+
+  <!-- Login Modal HTML -->
+  <div id="login-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="glass max-w-sm w-[calc(100%-32px)] p-6 rounded-3xl relative text-left">
+      <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-200">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-center gap-2 mb-4">
+        <div class="bg-customPrimary-glow border border-indigo-500/20 p-2 rounded-xl text-customPrimary-light">
+          <i id="modal-icon" data-lucide="shield" class="w-5 h-5"></i>
+        </div>
+        <span class="font-display text-lg font-bold" id="modal-role-title">Portal Login</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-5">Enter user details. Logins save directly inside local JSON database.</p>
+      <form onsubmit="handlePortalLoginForm(event)" class="space-y-4">
+        <input type="hidden" id="login-role" value="">
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1.5">User Name</label>
+          <input type="text" id="login-name" required placeholder="e.g. John Doe" class="w-full bg-[#0d121f] text-slate-100 border border-white/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-indigo-500/50" style="background-color: #0d121f !important; color: #f8fafc !important;">
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1.5">Phone Number</label>
+          <input type="tel" id="login-phone" required placeholder="e.g. +91 9876543210" class="w-full bg-[#0d121f] text-slate-100 border border-white/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-indigo-500/50" style="background-color: #0d121f !important; color: #f8fafc !important;">
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold rounded-xl text-xs transition duration-200">
+          Access Workspace
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

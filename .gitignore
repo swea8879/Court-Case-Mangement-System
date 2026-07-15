@@ -1,0 +1,10 @@
+# Ignore dependencies
+server/node_modules/
+node_modules/
+
+# Ignore local databases and logs
+server/db.json
+*.log
+.gemini/
+.agents/
+.git/
