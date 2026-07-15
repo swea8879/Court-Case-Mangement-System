@@ -1,4 +1,4 @@
-# ⚖️ JusticeFlow AI — Court Case Management System
+Court Case Management System - Justice Flow
 
 A production-ready SaaS platform for digital courtroom workflow automation, case docket tracking, and AI-powered document analysis.
 
